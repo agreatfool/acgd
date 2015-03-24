@@ -1,0 +1,2 @@
+var ProgressBar = require('progress');
+
