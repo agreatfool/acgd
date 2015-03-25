@@ -1,3 +1,7 @@
 {
-  "type": "MANGA"
+  "type": "MANGA",
+  "MANGA": {},
+  "VIDEO": {},
+  "LIST": {},
+  "STRING": {}
 }
