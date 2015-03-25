@@ -1,5 +1,6 @@
 module.exports = {
     "RUNNING_TYPE": {
-        "MANGA": "MANGA"
+        "MANGA": "MANGA",
+        "BINARY": "BINARY"
     }
 };
