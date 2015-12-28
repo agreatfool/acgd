@@ -1,4 +1,4 @@
-var Logger = require('./lib/util/logger');
+var Logger = require('./ES6/util/logger');
 
 var config = require('./config/config.json');
 var options = require('./options.js');
@@ -12,7 +12,7 @@ Logger.info('options: ' + JSON.stringify(typeOptions));
 
 Logger.info('Load implementation class: ' + options.TYPE);
 
-var Implementation = require('./lib/' + type.toLowerCase() + '/' + type.toLowerCase());
+var Implementation = require('./' + type.toLowerCase() + '/' + type.toLowerCase());
 
 var impl = new Implementation(typeOptions);
 
