@@ -10,33 +10,33 @@ class ImageProcessor extends ProcessorBase {
   }
 
   init(strategy) {
-    Logger.instance.info('[ImageProcessor] Init ...');
+    Logger.instance.info('[ImageProcessor][%s] Init ...', process.pid);
 
     this.strategy = strategy;
   }
 
   async start(taskUrl) {
-    Logger.instance.info('[ImageProcessor] Start to process single task: %s', taskUrl);
+    Logger.instance.info('[ImageProcessor][%s] Start to process single task: %s', process.pid, taskUrl);
   }
 
   prepareList(albumUrl) {
-    Logger.instance.info('[ImageProcessor] Start to download album: %s', albumUrl);
+    Logger.instance.info('[ImageProcessor][%s] Start to download album: %s', process.pid, albumUrl);
   }
 
   downloadList(imageUrls) {
-    Logger.instance.info('[ImageProcessor] Start to download images: %j', imageUrls);
+    Logger.instance.info('[ImageProcessor][%s] Start to download images: %j', process.pid, imageUrls);
   }
 
   downloadFile(imageUrl) {
-    Logger.instance.info('[ImageProcessor] Start to download single image: %s', imageUrl);
+    Logger.instance.info('[ImageProcessor][%s] Start to download single image: %s', process.pid, imageUrl);
   }
 
   persistFile(file, data) {
-    Logger.instance.info('[ImageProcessor] Start to save file: %s', file);
+    Logger.instance.info('[ImageProcessor][%s] Start to save file: %s', process.pid, file);
   }
 
   end() {
-    Logger.instance.info('[ImageProcessor] End process');
+    Logger.instance.info('[ImageProcessor][%s] End process', process.pid);
   }
 
 }

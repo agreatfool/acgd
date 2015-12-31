@@ -16,7 +16,7 @@ class Runner {
 
   constructor() {
     this.argv = yargs.argv;
-    this.numCPUs = libOs.cpus().length;
+    this.numCPUs = 1;//libOs.cpus().length;
 
     this.workingWorkersCount = 0;
     this.workers = [];
@@ -24,13 +24,13 @@ class Runner {
     this.requests = [];
   }
 
-  run() {
+  async run() {
     if (!this.validateArgs()) {
       process.exit(1);
     }
 
     this.clearPreviousLog();
-    this.spawnWorkers();
+    await this.spawnWorkers();
     this.parseSource();
     this.assignWorks();
     this.stay();
@@ -61,6 +61,8 @@ class Runner {
     // 创建工作子进程
     Logger.instance.info('[acgd] Start to spawn workers ...');
 
+    let initializedCount = 0;
+
     for (let i = 0; i < this.numCPUs; i++) {
       let worker = libCp.fork(libPath.join(__dirname, 'worker.js'));
 
@@ -70,6 +72,10 @@ class Runner {
           return;
         }
         switch (msg.cmd) {
+          case 'initialized':
+            Logger.instance.info('[acgd] Worker[%s]: Initialized ...', worker.pid);
+            initializedCount++;
+            break;
           case 'end':
             Logger.instance.info('[acgd] Worker[%s]: All works finished, exited ...', worker.pid);
             this.workingWorkersCount--;
@@ -79,12 +85,19 @@ class Runner {
             break;
         }
       });
-      worker.send({cmd: 'init', data: this.argv}); // 初始化worker子进程
-
       this.workers.push(worker);
-
-      Logger.instance.info('[acgd] Worker[%s]: Initialized ...', worker.pid);
+      worker.send({cmd: 'init', data: this.argv}); // 初始化worker子进程
     }
+
+    return new Promise((resolve, reject) => {
+      let timer = setInterval(() => {
+        if (initializedCount == this.numCPUs) {
+          clearInterval(timer);
+          Logger.instance.info('[acgd] All workers initialized ...');
+          resolve();
+        }
+      }, 500); // 0.5s
+    });
   }
 
   async parseSource() {
@@ -116,6 +129,8 @@ class Runner {
 
   assignWorks() {
     // 将解析出来的任务,分配给工作子进程
+    Logger.instance.info('[acgd] Start to assign works to workers ...');
+
     let workerIndex = 0;
     for (let work of this.requests) {
       this.workers[workerIndex].send({cmd: 'add', data: work});
@@ -131,6 +146,8 @@ class Runner {
         this.workingWorkersCount = workerIndex + 1;
       }
     }
+
+    Logger.instance.info('[acgd] All working workers: %d', this.workingWorkersCount);
 
     for (let worker of this.workers) {
       worker.send({cmd: 'start'});

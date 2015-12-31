@@ -4,21 +4,21 @@ import Logger from '../util/logger.js';
 
 class InstanceLoader {
 
-  load(downloadType, downloadStrategy = null) {
-    Logger.instance.info('[acgd] Load instance: %s-%s', downloadType, downloadStrategy);
+  static load(downloadType, downloadStrategy = '') {
+    Logger.instance.info('[acgd] Worker[%s]: Load instance: %s %s', process.pid, downloadType, downloadStrategy);
 
     let type = downloadType.toLowerCase();
 
-    let strategy = null;
-    if (downloadStrategy != null) {
+    let strategy = '';
+    if (downloadStrategy != '') {
       strategy = downloadStrategy.toLowerCase()
     }
 
-    return downloadStrategy == null ?
-      require(libPath.join('..', type, type + '.js')) :
-      require(libPath.join('..', 'strategy', type, strategy + '.js'));
+    return downloadStrategy == '' ?
+      require(libPath.join(__dirname, '..', type, type + '.js')).default :
+      require(libPath.join(__dirname, '..', 'strategy', type, strategy + '.js')).default;
   }
 
 }
 
-export default new InstanceLoader();
+export default InstanceLoader;

@@ -16,6 +16,8 @@ class Worker {
     let Strategy = InstanceLoader.load(argv.type, argv.strategy);
 
     this.processor = new Processor().init(new Strategy());
+
+    process.send({cmd: 'initialized'});
   }
 
   add(workUrl) {
@@ -26,7 +28,7 @@ class Worker {
     for (let workUrl of this.works) {
       this.processor.start(workUrl);
     }
-    this.end();
+    Worker.end();
   }
 
   static end() {
@@ -40,7 +42,7 @@ let worker = new Worker();
 
 process.on('message', function(msg) { // 处理parent线程发送过来的消息
   if (typeof msg != 'object' || !msg.hasOwnProperty('cmd')) {
-    Logger.instance.error('[Worker][' + process.pid + '] Invalid message! ' + JSON.stringify(msg));
+    Logger.instance.error('[Worker][%s] Invalid message:', process.pid, msg);
     return;
   }
   switch (msg.cmd) {
@@ -54,7 +56,7 @@ process.on('message', function(msg) { // 处理parent线程发送过来的消息
       worker.start();
       break;
     default:
-      Logger.instance.error('[Worker][' + process.pid + '] Invalid message command! ' + JSON.stringify(msg));
+      Logger.instance.error('[Worker][%s] Invalid command: %s', process.pid, msg.cmd);
       break;
   }
 });
