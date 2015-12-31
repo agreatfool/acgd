@@ -16,10 +16,10 @@ class ImageProcessor extends ProcessorBase {
   }
 
   async start(taskUrl) {
-    Logger.instance.info('[ImageProcessor][%s] Start to process single task: %s', process.pid, taskUrl);
+    Logger.instance.info('[ImageProcessor][%s] Start to process task: %s', process.pid, taskUrl);
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(123);
+        resolve();
       }, 2000);
     });
   }

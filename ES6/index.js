@@ -16,7 +16,7 @@ class Runner {
 
   constructor() {
     this.argv = yargs.argv;
-    this.numCPUs = 1;//libOs.cpus().length;
+    this.numCPUs = libOs.cpus().length;
 
     this.workingWorkersCount = 0;
     this.workers = [];

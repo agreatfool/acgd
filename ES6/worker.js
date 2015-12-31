@@ -15,7 +15,8 @@ class Worker {
     let Processor = InstanceLoader.load(argv.type);
     let Strategy = InstanceLoader.load(argv.type, argv.strategy);
 
-    this.processor = new Processor().init(new Strategy());
+    this.processor = new Processor();
+    this.processor.init(new Strategy());
 
     process.send({cmd: 'initialized'});
   }
