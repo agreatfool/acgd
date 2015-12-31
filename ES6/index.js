@@ -31,7 +31,7 @@ class Runner {
 
     this.clearPreviousLog();
     await this.spawnWorkers();
-    this.parseSource();
+    await this.parseSource();
     this.assignWorks();
     this.stay();
   }
@@ -89,7 +89,7 @@ class Runner {
       worker.send({cmd: 'init', data: this.argv}); // 初始化worker子进程
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let timer = setInterval(() => {
         if (initializedCount == this.numCPUs) {
           clearInterval(timer);
@@ -110,8 +110,9 @@ class Runner {
     } else if (await libFsp.exists(this.argv.source)) {
       // 给予的资源参数是一个本地文件,即需要下载的内容列表,每个URL一行
       let fileContent = await libFsp.readFile(this.argv.source);
-      let lines = fileContent.match(/^.*((\r\n|\n|\r)|$)/gm);
+      let lines = fileContent.toString().match(/^.*((\r\n|\n|\r)|$)/gm);
       lines.forEach((line) => {
+        line = line.replace(/(\r\n|\n|\r|$)/gm, "");
         if (!libValidUrl.isUri(line)) {
           Logger.instance.error('[acgd] Line data in source file is invalid: %s', line);
           return;

@@ -15,7 +15,7 @@ class MangaProcessor extends ProcessorBase {
     this.strategy = strategy;
   }
 
-  start(taskUrl) {
+  async start(taskUrl) {
     Logger.instance.info('[MangaProcessor] Start to process single task: %s', taskUrl);
   }
 

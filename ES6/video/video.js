@@ -15,7 +15,7 @@ class VideoProcessor extends ProcessorBase {
     this.strategy = strategy;
   }
 
-  start(taskUrl) {
+  async start(taskUrl) {
     Logger.instance.info('[VideoProcessor] Start to process single task: %s', taskUrl);
   }
 

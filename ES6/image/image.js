@@ -17,6 +17,9 @@ class ImageProcessor extends ProcessorBase {
 
   async start(taskUrl) {
     Logger.instance.info('[ImageProcessor][%s] Start to process single task: %s', process.pid, taskUrl);
+    return new Promise((resolve, reject) => {
+      resolve(123);
+    });
   }
 
   prepareList(albumUrl) {
