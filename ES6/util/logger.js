@@ -4,6 +4,8 @@ import moment from 'moment';
 class Logger {
 
   constructor() {
+    this.logFileName = 'acgd_' + moment().format() + '.log';
+
     this.logger = new winston.Logger({
       levels: {
         debug: 0,
@@ -28,7 +30,7 @@ class Logger {
         }),
         new winston.transports.File({
           name: 'acgd-file',
-          filename: 'log/acgd_' + moment().format() + '.log',
+          filename: 'log/' + this.logFileName,
           level: 'error' // max level
         })
       ]
@@ -37,6 +39,10 @@ class Logger {
 
   get instance() {
     return this.logger;
+  }
+
+  get logName() {
+    return this.logFileName;
   }
 
 }

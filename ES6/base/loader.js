@@ -8,7 +8,11 @@ class InstanceLoader {
     Logger.instance.info('[acgd] Load instance: %s-%s', downloadType, downloadStrategy);
 
     let type = downloadType.toLowerCase();
-    let strategy = downloadStrategy.toLowerCase();
+
+    let strategy = null;
+    if (downloadStrategy != null) {
+      strategy = downloadStrategy.toLowerCase()
+    }
 
     return downloadStrategy == null ?
       require(libPath.join('..', type, type + '.js')) :

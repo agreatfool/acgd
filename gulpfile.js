@@ -40,25 +40,25 @@ gutil.log(
 //-* TASKS
 //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 gulp.task('clean', function () { // 清理任务，删除所有最终输出结果
-  return gulp.src([libPath.join('evernote', 'ES5')], {read: false})
+  return gulp.src([libPath.join('ES5')], {read: false})
     .pipe(rimraf())
     .on('error', handleError);
 });
 
 gulp.task('build', function () { // 源代码 babel 转码
   return gulp.src([
-    libPath.join('evernote', 'ES6', '**', '*.js')
+    libPath.join('ES6', '**', '*.js')
   ])
-    .pipe(babel({
-      'presets': [
-        'es2015',
-        'stage-3'
-      ],
-      'plugins': [
-        'transform-async-to-generator'
-      ]
-    }))
-    .pipe(gulp.dest(libPath.join('evernote', 'ES5')));
+  .pipe(babel({
+    'presets': [
+      'es2015',
+      'stage-3'
+    ],
+    'plugins': [
+      'transform-async-to-generator'
+    ]
+  }))
+  .pipe(gulp.dest(libPath.join('ES5')));
 });
 
 gulp.task('default', function (done) { // 默认任务
