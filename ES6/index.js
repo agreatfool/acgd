@@ -10,7 +10,6 @@ import libValidUrl from 'valid-url';
 import yargs from 'yargs';
 
 import Logger from './util/logger.js';
-import InstanceLoader from './base/loader.js';
 
 class Runner {
 
