@@ -16,12 +16,14 @@ class Runner {
 
   constructor() {
     this.argv = yargs.argv;
-    this.numCPUs = libOs.cpus().length;
+    this.numCPUs = 1;//libOs.cpus().length;
 
     this.workingWorkersCount = 0;
     this.workers = [];
+    this.works = [];
 
-    this.requests = [];
+    this.initializedWorkerCount = 0;
+    this.addedWorksCount = 0;
   }
 
   async run() {
@@ -32,7 +34,7 @@ class Runner {
     await Runner.clearPreviousLog();
     await this.spawnWorkers();
     await this.parseSource();
-    this.assignWorks();
+    await this.assignWorks();
     this.makeWorkersRun();
     this.stay();
   }
@@ -63,8 +65,6 @@ class Runner {
     // 创建工作子进程
     Logger.instance.info('[acgd] Start to spawn workers ...');
 
-    let initializedCount = 0;
-
     for (let i = 0; i < this.numCPUs; i++) {
       let worker = libCp.fork(libPath.join(__dirname, 'worker.js'));
 
@@ -75,8 +75,12 @@ class Runner {
         }
         switch (msg.cmd) {
           case 'initialized':
-            Logger.instance.info('[acgd] Worker[%s]: Initialized ...', worker.pid);
-            initializedCount++;
+            Logger.instance.info('[acgd] Worker[%s]: Worker initialized ...', worker.pid);
+            this.initializedWorkerCount++;
+            break;
+          case 'added':
+            Logger.instance.info('[acgd] Worker[%s]: Work %s added ...', worker.pid, msg.url);
+            this.addedWorksCount++;
             break;
           case 'end':
             Logger.instance.info('[acgd] Worker[%s]: All works finished, exited ...', worker.pid);
@@ -93,7 +97,7 @@ class Runner {
 
     return new Promise((resolve) => {
       let timer = setInterval(() => {
-        if (initializedCount == this.numCPUs) {
+        if (this.initializedWorkerCount == this.numCPUs) {
           clearInterval(timer);
           Logger.instance.info('[acgd] All workers initialized ...');
           resolve();
@@ -108,7 +112,7 @@ class Runner {
 
     if (libValidUrl.isUri(this.argv.source)) {
       // 给予的资源参数是一个链接,即需要下载的albumUrl
-      this.requests.push(this.argv.source);
+      this.works.push(this.argv.source);
     } else if (await libFsp.exists(this.argv.source)) {
       // 给予的资源参数是一个本地文件,即需要下载的内容列表,每个URL一行
       let fileContent = await libFsp.readFile(this.argv.source);
@@ -119,7 +123,7 @@ class Runner {
           Logger.instance.error('[acgd] Line data in source file is invalid: %s', line);
           return;
         }
-        this.requests.push(line);
+        this.works.push(line);
       });
     } else {
       // 非法资源
@@ -127,7 +131,7 @@ class Runner {
       process.exit(1);
     }
 
-    Logger.instance.info('[acgd] Works parsed: ', this.requests);
+    Logger.instance.info('[acgd] Works parsed: ', this.works);
   }
 
   assignWorks() {
@@ -135,10 +139,8 @@ class Runner {
     Logger.instance.info('[acgd] Start to assign works to workers ...');
 
     let workerIndex = 0;
-    for (let work of this.requests) {
-      let worker = this.workers[workerIndex];
-      Logger.instance.debug('[acgd] Worker %s looped to handle work %s', worker.pid, work);
-      worker.send({cmd: 'add', data: work});
+    for (let work of this.works) {
+      this.workers[workerIndex].send({cmd: 'add', data: work});
 
       // 更新下一个运行的worker的编号
       workerIndex++;
@@ -150,7 +152,15 @@ class Runner {
     // 更新正在工作的子进程数量
     this.workingWorkersCount = this.numCPUs;
 
-    Logger.instance.info('[acgd] All works assigned ...');
+    return new Promise((resolve) => {
+      let timer = setInterval(() => {
+        if (this.addedWorksCount == this.works.length) {
+          clearInterval(timer);
+          Logger.instance.info('[acgd] All works assigned ...');
+          resolve();
+        }
+      }, 500); // 0.5s
+    });
   }
 
   makeWorkersRun() {

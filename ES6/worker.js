@@ -22,6 +22,7 @@ class Worker {
 
   add(workUrl) {
     this.works.push(workUrl);
+    process.send({cmd: 'added', url: workUrl});
   }
 
   async start() {
