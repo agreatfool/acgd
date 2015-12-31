@@ -16,7 +16,7 @@ class Runner {
 
   constructor() {
     this.argv = yargs.argv;
-    this.numCPUs = 1;//libOs.cpus().length;
+    this.numCPUs = libOs.cpus().length;
 
     this.workingWorkersCount = 0;
     this.workers = [];
@@ -29,14 +29,15 @@ class Runner {
       process.exit(1);
     }
 
-    this.clearPreviousLog();
+    await Runner.clearPreviousLog();
     await this.spawnWorkers();
     await this.parseSource();
     this.assignWorks();
+    this.makeWorkersRun();
     this.stay();
   }
 
-  async clearPreviousLog() {
+  static async clearPreviousLog() {
     // 清理之前的运行日志
     Logger.instance.info('[acgd] Start to clear previous logs ...');
 
@@ -48,13 +49,14 @@ class Runner {
     }
 
     let files = await libFsp.readdir(logPath);
-    files.forEach((filename) => {
+    for (let filename of files) {
       if (filename == 'placeholder' || filename == Logger.logName) {
         return;
       }
       let filePath = libPath.join(logPath, filename);
-      libFs.unlink(filePath, () => Logger.instance.info('[acgd] Log deleted: %s', filePath));
-    });
+      await libFsp.unlink(filePath);
+      Logger.instance.info('[acgd] Log deleted: %s', filePath);
+    }
   }
 
   spawnWorkers() {
@@ -134,21 +136,26 @@ class Runner {
 
     let workerIndex = 0;
     for (let work of this.requests) {
-      this.workers[workerIndex].send({cmd: 'add', data: work});
+      let worker = this.workers[workerIndex];
+      Logger.instance.debug('[acgd] Worker %s looped to handle work %s', worker.pid, work);
+      worker.send({cmd: 'add', data: work});
 
       // 更新下一个运行的worker的编号
       workerIndex++;
       if (workerIndex > (this.workers.length - 1)) {
         workerIndex = 0;
       }
-
-      // 更新正在工作的子进程数量
-      if ((workerIndex + 1) > this.workingWorkersCount) {
-        this.workingWorkersCount = workerIndex + 1;
-      }
     }
 
-    Logger.instance.info('[acgd] All working workers: %d', this.workingWorkersCount);
+    // 更新正在工作的子进程数量
+    this.workingWorkersCount = this.numCPUs;
+
+    Logger.instance.info('[acgd] All works assigned ...');
+  }
+
+  makeWorkersRun() {
+    // 通知所有子进程工作起来
+    Logger.instance.info('[acgd] Start make workers run ...');
 
     for (let worker of this.workers) {
       worker.send({cmd: 'start'});
