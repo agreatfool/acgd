@@ -43,7 +43,7 @@ class Worker {
 
 let worker = new Worker();
 
-process.on('message', function(msg) { // 处理parent线程发送过来的消息
+process.on('message', function(msg) { // 处理父进程发送过来的消息
   if (typeof msg != 'object' || !msg.hasOwnProperty('cmd')) {
     Logger.instance.error('[Worker][%s] Invalid message:', process.pid, msg);
     return;
