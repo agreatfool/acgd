@@ -29,7 +29,11 @@ class Worker {
   async start() {
     Logger.instance.info('[Worker][%s] Start to work, count: %d', process.pid, this.works.length);
     for (let workUrl of this.works) {
-      await this.processor.start(workUrl);
+      try {
+        await this.processor.start(workUrl);
+      } catch (err) {
+        Logger.instance.error(err);
+      }
     }
     Worker.end();
   }
