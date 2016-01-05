@@ -2,7 +2,6 @@ import 'babel-polyfill';
 
 import libFs from 'fs';
 import libPath from 'path';
-import libOs from 'os';
 import libCp from 'child_process';
 
 import libFsp from 'fs-promise';
@@ -11,11 +10,13 @@ import yargs from 'yargs';
 
 import Logger from './util/logger.js';
 
+import conf from '../config/config.json';
+
 class Runner {
 
   constructor() {
     this.argv = yargs.argv;
-    this.numCPUs = libOs.cpus().length;
+    this.numCPUs = conf.workersCount;
 
     this.workingWorkersCount = 0;
     this.workers = [];
