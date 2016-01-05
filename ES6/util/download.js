@@ -25,20 +25,31 @@ class DownloadAgent {
     });
   }
 
-  writeBinary(url, filePath, size = null) {
+  writeBinary(url, filePath) {
     return new Promise((resolve, reject) => {
-      let dres = libRequest(url).pipe(libFs.createWriteStream(filePath));
-      dres.on('error', (err) => {
-        Logger.instance.error('[Worker][%s] Image %s error: ', process.pid, url, err);
+      let req = libRequest(url);
+
+      req.on('error', (err) => {
+        Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
         reject(err);
       });
-      dres.on('close', () => {
-        if (null == size) {
-          Logger.instance.info('[Worker][%s] Image %s downloaded', process.pid, url);
+      req.on('response', (resp) => {
+        let type = resp.headers['content-type'];
+        let size = resp.headers['content-length'];
+        if (resp && resp.statusCode == 200) {
+          let dres = req.pipe(libFs.createWriteStream(filePath));
+
+          dres.on('error', (err) => {
+            Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
+            reject(err);
+          });
+          dres.on('close', () => {
+            Logger.instance.info('[Worker][%s] File %s downloaded, type: %s, size: %s', process.pid, url, type ,libFilesize(size));
+            resolve();
+          });
         } else {
-          Logger.instance.info('[Worker][%s] Image %s downloaded, size: %s', process.pid, url, libFilesize(size));
+          resolve(); // wrong code skip it
         }
-        resolve();
       });
     });
   }
