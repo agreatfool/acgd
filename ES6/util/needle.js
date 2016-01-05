@@ -20,7 +20,7 @@ class Needle {
         if (err != null) {
           reject(err);
         }
-        if (!response) {
+        if (!response || response === undefined) {
           reject(new Error('[Worker][%s] Needle::get Invalid response'));
         }
         if (response.statusCode != 200) {
