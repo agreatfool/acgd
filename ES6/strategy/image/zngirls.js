@@ -81,22 +81,25 @@ class Zngirls extends ImageStrategy {
     return new Promise((resolve, reject) => {
       let filePath = this._buildFileOutputPath(imageUrl);
       libFsp.stat(filePath).then((stat) => {
-        if (stat && stat.isFile()) {
-          // get download and compare with file size
-          downAgent.getSize(imageUrl).then((size) => {
-            if (size == stat.size) {
-              // file completely downloaded
-              resolve();
-            } else {
-              // partly downloaded, restart
-              downAgent.writeBinary(imageUrl, filePath, stat.size).then(() => resolve(), (err) => reject(err));
-            }
-          }, (err) => reject(err));
-        } else {
-          // new download
+        // file found
+        downAgent.getSize(imageUrl).then((size) => {
+          if (size == stat.size) {
+            // file completely downloaded
+            resolve();
+          } else {
+            // partly downloaded, restart
+            downAgent.writeBinary(imageUrl, filePath, stat.size).then(() => resolve(), (err) => reject(err));
+          }
+        }, (err) => reject(err));
+      }, (err) => {
+        if (err.code == 'ENOENT') {
+          // file not found
           downAgent.writeBinary(imageUrl, filePath).then(() => resolve(), (err) => reject(err));
+        } else {
+          // other error
+          reject(err);
         }
-      }, (err) => reject(err));
+      });
     });
   }
 
