@@ -24,13 +24,13 @@ class ImageProcessor extends ProcessorBase {
 
     try {
       let albums = await this.strategy.parseAlbums(taskUrl);
-      Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded:', process.pid, albums);
+      Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded: %d', process.pid, albums.length);
 
       for (let albumUrl of albums) {
         let albumImages = await this.strategy.parseImages(albumUrl);
         this.images = [...this.images, ...albumImages];
       }
-      Logger.instance.info('[ImageProcessor][%s] Images to be downloaded:', process.pid, this.images);
+      Logger.instance.info('[ImageProcessor][%s] Images to be downloaded: %d', process.pid, this.images.length);
 
       if (this.images.length > 0) {
         await this.strategy.ensureOutputDir();
