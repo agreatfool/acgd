@@ -31,45 +31,43 @@ class ImageProcessor extends ProcessorBase {
         this.images = [...this.images, ...albumImages];
       }
       Logger.instance.info('[ImageProcessor][%s] Images to be downloaded:', process.pid, this.images);
+
+      if (this.images.length > 0) {
+        await this.strategy.ensureOutputDir();
+      }
     } catch (err) {
       return new Promise((resolve, reject) => {
         reject(err);
       });
     }
 
-    if (this.images.length > 0) {
-      await this.strategy.ensureOutputDir();
-    }
-
-    //for (let imageUrl of this.images) {
-    //  await this.strategy.downloadImage(imageUrl);
-    //}
-
-    while (this.images.length > 0) {
-      if (this.processingDownloads >= this.concurrencyLimit) {
-        continue;
-      }
-      this.processingDownloads++;
-      this.strategy.downloadImage(this.images.shift()).then(
-        () => {
-          this.processingDownloads--;
-        },
-        (err) => {
-          this.processingDownloads--;
-          Logger.instance.error(err);
-        }
-      );
-    }
-
     return new Promise((resolve) => {
+      let reporter = setInterval(() => {
+        Logger.instance.info('[ImageProcessor][%s] Image task left not assigned: %d, Image task downloading: %d', process.pid, this.images.length, this.processingDownloads);
+      }, 3000); // 5s
+
       let timer = setInterval(() => {
+        // process download
+        if (this.images.length > 0 && this.processingDownloads < this.concurrencyLimit) {
+          this.processingDownloads++;
+          this.strategy.downloadImage(this.images.shift()).then(
+            () => {
+              this.processingDownloads--;
+            },
+            (err) => {
+              this.processingDownloads--;
+              Logger.instance.error(err);
+            }
+          );
+        }
+
+        // check status
         if (this.images.length <= 0 && this.processingDownloads <= 0) {
+          clearInterval(reporter);
           clearInterval(timer);
           resolve();
-        } else {
-          Logger.instance.info('[ImageProcessor][%s] Images left: %d', process.pid, this.images.length);
         }
-      }, 1000); // 1s
+      }, 500); // 0.5s
     });
   }
 

@@ -20,8 +20,11 @@ class Needle {
         if (err != null) {
           reject(err);
         }
+        if (!response) {
+          reject(new Error('[Worker][%s] Needle::get Invalid response'));
+        }
         if (response.statusCode != 200) {
-          reject(new Error(libUtil.format('Wrong HTTP response, code: %d, messsage: %s', response.statusCode, response.statusText)));
+          reject(new Error(libUtil.format('[Worker][%s] Needle::get Wrong HTTP response, code: %d, messsage: %s', process.pid, response.statusCode, response.statusText)));
         }
         resolve(response.body);
       })

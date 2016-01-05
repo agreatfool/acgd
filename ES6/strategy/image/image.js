@@ -1,20 +1,12 @@
 class ImageStrategy {
 
-  async parseAlbums(taskUrl) {
+  async parseAlbums(taskUrl) {}
 
-  }
+  async parseImages(albumUrl) {}
 
-  async parseImages(albumUrl) {
+  async ensureOutputDir() {}
 
-  }
-
-  downloadImage(imageUrl) { // return promise
-
-  }
-
-  persistFile(file, data) { // return promise
-
-  }
+  downloadImage(imageUrl) {}
 
 }
 

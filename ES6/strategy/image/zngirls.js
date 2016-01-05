@@ -43,10 +43,10 @@ class Zngirls extends ImageStrategy {
     // get base url
     this.baseUrl = match[1];
 
-    let finalPageId = await this._parseFinalPageId();
+    let lastPageId = await this._parseLastPageId();
 
     let albumUrls = [];
-    for (let pageId = 1; pageId <= finalPageId; pageId++) {
+    for (let pageId = 1; pageId <= lastPageId; pageId++) {
       albumUrls.push(this._buildPageUrlViaId(pageId));
     }
 
@@ -79,29 +79,32 @@ class Zngirls extends ImageStrategy {
 
   downloadImage(imageUrl) { // return promise
     return new Promise((resolve, reject) => {
-      //needle.get(imageUrl).then(
-      //  (data) => {
-      //    Logger.instance.info('[Worker][%s] Image %s downloaded ...', process.pid, imageUrl);
-      //    libFsp.writeFile(this._buildFileOutputPath(imageUrl), data).then(() => resolve(), (err) => reject(err));
-      //  }, (err) => reject(err)
-      //);
-      //FIXME
-      downAgent.getBinary(imageUrl, this._buildFileOutputPath(imageUrl)).then(() => {
-        Logger.instance.info('[Worker][%s] Image %s downloaded ...');
-        resolve();
-      });
+      let filePath = this._buildFileOutputPath(imageUrl);
+      libFsp.stat(filePath).then((stat) => {
+        if (stat && stat.isFile()) {
+          // get download and compare with file size
+          downAgent.getSize(imageUrl).then((size) => {
+            if (size == stat.size) {
+              // file completely downloaded
+              resolve();
+            } else {
+              // partly downloaded, restart
+              downAgent.writeBinary(imageUrl, filePath, stat.size).then(() => resolve(), (err) => reject(err));
+            }
+          }, (err) => reject(err));
+        } else {
+          // new download
+          downAgent.writeBinary(imageUrl, filePath).then(() => resolve(), (err) => reject(err));
+        }
+      }, (err) => reject(err));
     });
   }
 
-  async _parseFinalPageId(lastPageId = 1) {
-    let retrievedId = await this._parseLastPageId(lastPageId);
-  //async downloadImage(imageUrl) {
-  //  await downAgent.getBinary(imageUrl, this._buildFileOutputPath(imageUrl));
-  //}
-
+  async _parseLastPageId(lastPageId = 1) {
+    let retrievedId = await this._parseLastPageIdOnCurrentPage(lastPageId);
 
     if (retrievedId > lastPageId) {
-      return this._parseFinalPageId(retrievedId);
+      return this._parseLastPageId(retrievedId);
     } else if (lastPageId == retrievedId + 1) {
       return new Promise((resolve) => {
         resolve(lastPageId);
@@ -113,7 +116,7 @@ class Zngirls extends ImageStrategy {
     }
   }
 
-  async _parseLastPageId(pageId) {
+  async _parseLastPageIdOnCurrentPage(pageId) {
     let html = await needle.get(this._buildPageUrlViaId(pageId));
     let $ = libCheerio.load(html);
     this.title = $('title').text();
