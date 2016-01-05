@@ -95,6 +95,10 @@ class Zngirls extends ImageStrategy {
 
   async _parseFinalPageId(lastPageId = 1) {
     let retrievedId = await this._parseLastPageId(lastPageId);
+  //async downloadImage(imageUrl) {
+  //  await downAgent.getBinary(imageUrl, this._buildFileOutputPath(imageUrl));
+  //}
+
 
     if (retrievedId > lastPageId) {
       return this._parseFinalPageId(retrievedId);

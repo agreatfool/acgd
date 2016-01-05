@@ -41,6 +41,10 @@ class ImageProcessor extends ProcessorBase {
       await this.strategy.ensureOutputDir();
     }
 
+    //for (let imageUrl of this.images) {
+    //  await this.strategy.downloadImage(imageUrl);
+    //}
+
     while (this.images.length > 0) {
       if (this.processingDownloads >= this.concurrencyLimit) {
         continue;
