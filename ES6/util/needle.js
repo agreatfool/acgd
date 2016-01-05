@@ -18,13 +18,13 @@ class Needle {
     return new Promise((resolve, reject) => {
       libNeedle.get(url, (err, response) => {
         if (err != null) {
-          reject(err);
+          reject(err); return;
         }
-        if (!response || response === undefined) {
-          reject(new Error('[Worker][%s] Needle::get Invalid response'));
+        if (!response) {
+          reject(new Error('[Worker][%s] Needle::get Invalid response')); return;
         }
         if (response.statusCode != 200) {
-          reject(new Error(libUtil.format('[Worker][%s] Needle::get Wrong HTTP response, code: %d, messsage: %s', process.pid, response.statusCode, response.statusText)));
+          reject(new Error(libUtil.format('[Worker][%s] Needle::get Wrong HTTP response, code: %d, messsage: %s', process.pid, response.statusCode, response.statusText))); return;
         }
         resolve(response.body);
       })
