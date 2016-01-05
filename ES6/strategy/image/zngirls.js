@@ -7,7 +7,6 @@ import libValidUrl from 'valid-url';
 import libUuid from 'node-uuid';
 import libFsp from 'fs-promise';
 
-import downAgent from '../../util/download.js';
 import needle from '../../util/needle.js';
 import Logger from '../../util/logger.js';
 
@@ -69,38 +68,15 @@ class Zngirls extends ImageStrategy {
     return imageUrls;
   }
 
-  async ensureOutputDir() {
-    let path = libPath.join(conf.downloadBase, this.title);
-    let exists = await libFsp.exists(path);
-    if (!exists) {
-      await libFsp.mkdir(path);
+  _parseFilenameFromUrl(imageUrl) {
+    let match = imageUrl.match(this.patternImage);
+    if (match != null) {
+      this.fileext = libPath.extname(match[3]);
+      return match[3];
+    } else {
+      Logger.instance.warn('[Worker][%s] Image filename not parsed from url: %s', process.pid, imageUrl);
+      return libUuid.v4() + this.fileext;
     }
-  }
-
-  downloadImage(imageUrl) { // return promise
-    return new Promise((resolve, reject) => {
-      let filePath = this._buildFileOutputPath(imageUrl);
-      libFsp.stat(filePath).then((stat) => {
-        // file found
-        downAgent.getSize(imageUrl).then((size) => {
-          if (size == stat.size) {
-            // file completely downloaded
-            resolve();
-          } else {
-            // partly downloaded, restart
-            downAgent.writeBinary(imageUrl, filePath, stat.size).then(() => resolve(), (err) => reject(err));
-          }
-        }, (err) => reject(err));
-      }, (err) => {
-        if (err.code == 'ENOENT') {
-          // file not found
-          downAgent.writeBinary(imageUrl, filePath).then(() => resolve(), (err) => reject(err));
-        } else {
-          // other error
-          reject(err);
-        }
-      });
-    });
   }
 
   async _parseLastPageId(lastPageId = 1) {
@@ -142,21 +118,6 @@ class Zngirls extends ImageStrategy {
 
   _buildPageUrlViaId(pageId) {
     return this.baseUrl + '/' + pageId + '.html';
-  }
-
-  _parseFilenameFromUrl(imageUrl) {
-    let match = imageUrl.match(this.patternImage);
-    if (match != null) {
-      this.fileext = libPath.extname(match[3]);
-      return match[3];
-    } else {
-      Logger.instance.warn('[Worker][%s] Image filename not parsed from url: %s', process.pid, imageUrl);
-      return libUuid.v4() + this.fileext;
-    }
-  }
-
-  _buildFileOutputPath(imageUrl) {
-    return libPath.join(conf.downloadBase, this.title, this._parseFilenameFromUrl(imageUrl));
   }
 
 }
