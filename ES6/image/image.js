@@ -67,7 +67,7 @@ class ImageProcessor extends ProcessorBase {
           clearInterval(timer);
           resolve();
         }
-      }, 500); // 0.5s
+      }, 100); // 0.1s
     });
   }
 
