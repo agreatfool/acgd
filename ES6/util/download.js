@@ -68,6 +68,7 @@ class DownloadAgent {
             resolve();
           });
         } else {
+          Logger.instance.error('[Worker][%s] File %s status code invalid, code: %d', process.pid, url, resp.statusCode);
           resolve(); // wrong code skip it
         }
       });
