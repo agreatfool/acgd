@@ -75,7 +75,7 @@ class DownloadAgent {
   }
 
   writeBinaryWithRetry(url, filePath) {
-    return PromiseRetry.retry(this.writeBinary, this, [url, filePath], 3);
+    return PromiseRetry.retry(this.writeBinary, this, [url, filePath], 5);
   }
 
 }
