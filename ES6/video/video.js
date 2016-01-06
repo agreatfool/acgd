@@ -10,33 +10,13 @@ class VideoProcessor extends ProcessorBase {
   }
 
   init(strategy) {
-    Logger.instance.info('[VideoProcessor] Init ...');
+    Logger.instance.info('[VideoProcessor][%s] Init ...', process.pid);
 
     this.strategy = strategy;
   }
 
   async start(taskUrl) {
-    Logger.instance.info('[VideoProcessor] Start to process single task: %s', taskUrl);
-  }
-
-  prepareList(albumUrl) {
-    Logger.instance.info('[VideoProcessor] Start to download album: %s', albumUrl);
-  }
-
-  downloadList(imageUrls) {
-    Logger.instance.info('[VideoProcessor] Start to download videos: %j', imageUrls);
-  }
-
-  downloadFile(imageUrl) {
-    Logger.instance.info('[VideoProcessor] Start to download single video: %s', imageUrl);
-  }
-
-  persistFile(file, data) {
-    Logger.instance.info('[VideoProcessor] Start to save file: %s', file);
-  }
-
-  end() {
-    Logger.instance.info('[VideoProcessor] End process');
+    Logger.instance.info('[VideoProcessor][%s] Start to process single task: %s', process.pid, taskUrl);
   }
 
 }
