@@ -2,13 +2,25 @@ import libFs from 'fs';
 import libRequest from 'request';
 import libFilesize from 'filesize';
 
+import PromiseRetry from './retry.js';
 import Logger from './logger.js';
 
 class DownloadAgent {
 
+  constructor() {
+    this.timeout = 5000; // 5s
+
+    this.request = libRequest.defaults({
+      timeout: this.timeout,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'
+      }
+    });
+  }
+
   getInfo(url) { // http head
     return new Promise((resolve, reject) => {
-      libRequest.head(url, (err, res) => {
+      this.request.head(url, (err, res) => {
         if (err != null) {
           reject(err);
         }
@@ -17,17 +29,25 @@ class DownloadAgent {
     });
   }
 
+  getInfoWithRetry(url) { // http head
+    return PromiseRetry.retry(this.getInfo, this, [url], 3);
+  }
+
   getSize(url) { // byte
     return new Promise((resolve, reject) => {
-      this.getInfo(url).then((res) => {
+      this.getInfoWithRetry(url).then((res) => {
         resolve(res.headers['content-length']);
       }, (err) => reject(err));
     });
   }
 
+  getSizeWithRetry(url) { // byte
+    return PromiseRetry.retry(this.getSize, this, [url], 3);
+  }
+
   writeBinary(url, filePath) {
     return new Promise((resolve, reject) => {
-      let req = libRequest(url);
+      let req = this.request(url);
 
       req.on('error', (err) => {
         Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
@@ -52,6 +72,10 @@ class DownloadAgent {
         }
       });
     });
+  }
+
+  writeBinaryWithRetry(url, filePath) {
+    return PromiseRetry.retry(this.writeBinary, this, [url, filePath], 3);
   }
 
 }

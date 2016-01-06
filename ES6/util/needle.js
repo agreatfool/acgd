@@ -1,6 +1,8 @@
 import libUtil from 'util';
 import libNeedle from 'needle';
 
+import PromiseRetry from './retry.js';
+
 class Needle {
 
   constructor() {
@@ -29,6 +31,10 @@ class Needle {
         resolve(response.body);
       })
     });
+  }
+
+  getWithRetry(url) { // return promise
+    return PromiseRetry.retry(this.get, this, [url], 3);
   }
 
 }

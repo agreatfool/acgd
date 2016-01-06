@@ -53,7 +53,7 @@ class Zngirls extends ImageStrategy {
   }
 
   async parseImages(albumUrl) { // return promise
-    let html = await needle.get(albumUrl);
+    let html = await needle.getWithRetry(albumUrl);
     let $ = libCheerio.load(html);
 
     let imageUrls = [];
@@ -96,7 +96,7 @@ class Zngirls extends ImageStrategy {
   }
 
   async _parseLastPageIdOnCurrentPage(pageId) {
-    let html = await needle.get(this._buildPageUrlViaId(pageId));
+    let html = await needle.getWithRetry(this._buildPageUrlViaId(pageId));
     let $ = libCheerio.load(html);
     this.title = $('title').text();
 
