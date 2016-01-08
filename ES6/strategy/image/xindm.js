@@ -163,8 +163,8 @@ class Xindm extends ImageStrategy {
       imageUrl = selfSiteMatch[0];
       filename = selfSiteMatch[1];
     } else if (cdnSiteMatch != null) {
-      imageUrl = cdnSiteMatch[1];
-      let nameMatch = imageUrl.match(/.+[^0-9](\d+\..+)/); // ["http%3A%2F%2Fimages.dmzj.com%2Fs%2F%CA%D8%BB%A4%CC%EC%CA%B9happyworld%2F%B5%DA06%BE%ED%2F002.jpg", "002.jpg"]
+      imageUrl = decodeURIComponent(cdnSiteMatch[1]);
+      let nameMatch = imageUrl.match(/.+[^0-9](\d+\..+)/); // ["http://images.dmzj.com/s/%CA%D8%BB%A4%CC%EC%CA%B9happyworld/%B5%DA06%BE%ED/002.jpg", "002.jpg"]
       if (nameMatch != null) {
         filename = nameMatch[1];
       } else {
