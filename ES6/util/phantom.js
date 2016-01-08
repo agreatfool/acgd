@@ -2,11 +2,9 @@ import libCp from 'child_process';
 import libPath from 'path';
 
 import Logger from './logger.js';
+import PromiseRetry from './retry.js';
 
 class Phantom {
-
-  constructor() {
-  }
 
   getRenderedPage(url) {
     return new Promise((resolve, reject) => {
@@ -29,6 +27,10 @@ class Phantom {
         }
       });
     });
+  }
+
+  getRenderedPageWithRetry(url) { // return promise
+    return PromiseRetry.retry(this.getRenderedPage, this, [url], 3);
   }
 
 }
