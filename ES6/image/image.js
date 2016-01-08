@@ -26,15 +26,21 @@ class ImageProcessor extends ProcessorBase {
       let albums = await this.strategy.parseAlbums(taskUrl);
       Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded: %d', process.pid, albums.length);
 
+      if (albums.length == 0) {
+        return; // nothing to download
+      }
+
       for (let albumUrl of albums) {
         let albumImages = await this.strategy.parseImages(albumUrl);
         this.images = [...this.images, ...albumImages];
       }
       Logger.instance.info('[ImageProcessor][%s] Images to be downloaded: %d', process.pid, this.images.length);
 
-      if (this.images.length > 0) {
-        await this.strategy.ensureOutputDir();
+      if (this.images.length == 0) {
+        return; // nothing to download
       }
+
+      await this.strategy.ensureOutputDir();
     } catch (err) {
       return new Promise((resolve, reject) => {
         reject(err);

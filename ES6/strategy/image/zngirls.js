@@ -36,7 +36,8 @@ class Zngirls extends ImageStrategy {
     // validate url
     let match = taskUrl.match(this.pattern);
     if (null == match) {
-      return new Error(libUtil.format('Invalid taskUrl: %s', taskUrl));
+      Logger.instance.error('[Worker][%s] Invalid taskUrl: %s', process.pid, taskUrl);
+      return [];
     }
 
     // get base url
