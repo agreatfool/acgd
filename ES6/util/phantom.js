@@ -30,7 +30,7 @@ class Phantom {
   }
 
   getRenderedPageWithRetry(url) { // return promise
-    return PromiseRetry.retry(this.getRenderedPage, this, [url], 3);
+    return PromiseRetry.retry(this.getRenderedPage, this, [url], 5);
   }
 
 }
