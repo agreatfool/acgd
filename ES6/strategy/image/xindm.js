@@ -74,8 +74,7 @@ class Xindm extends ImageStrategy {
       }
     });
 
-    //return albumUrls.reverse(); //FIXME
-    return [albumUrls.reverse().shift()];
+    return albumUrls.reverse();
   }
 
   async parseImages(albumUrl) { // return promise
