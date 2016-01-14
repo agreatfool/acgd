@@ -62,11 +62,11 @@ class Zngirls extends ImageStrategy {
     $('#hgallery img').each((index, element) => {
       let imageUrl = $(element).attr('src');
       if (libValidUrl.isUri(imageUrl)) {
-        imageUrls.push(imageUrl);
+        imageUrls.push(['', imageUrl, this._parseFilenameFromUrl(imageUrl)]);
       }
     });
 
-    return imageUrls;
+    return ['', imageUrls];
   }
 
   _parseFilenameFromUrl(imageUrl) {
@@ -86,13 +86,9 @@ class Zngirls extends ImageStrategy {
     if (retrievedId > lastPageId) {
       return this._parseLastPageId(retrievedId);
     } else if (lastPageId == retrievedId + 1) {
-      return new Promise((resolve) => {
-        resolve(lastPageId);
-      });
+      return Promise.resolve(lastPageId);
     } else {
-      return new Promise((resolve) => {
-        resolve(retrievedId);
-      });
+      return Promise.resolve(retrievedId);
     }
   }
 
