@@ -37,7 +37,7 @@ class DownloadAgent {
     return new Promise((resolve, reject) => {
       this.getInfoWithRetry(url).then((res) => {
         resolve(res.headers['content-length']);
-      }, (err) => reject(err));
+      }).catch((err) => reject(err));
     });
   }
 

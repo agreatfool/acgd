@@ -7,10 +7,12 @@ class ImageProcessor extends ProcessorBase {
   constructor() {
     super();
 
-    this.processingDownloads = 0;
-    this.concurrencyLimit = 10;
-    this.images = [];
-    this.strategy = null;
+    this.strategy = null; // 执行策略代码,自动注入
+
+    this.albumConcurrencyLimit = 5;  // 同时进行解析的album数量
+    this.imageConcurrencyLimit = 10; // 同时进行下载的图片数量
+    this.albumUrls = []; // 正在解析的相册url列表,解析完成后会被移除,因此length为0表示下载地址都解析完成
+    this.images = [];    // 正在下载的图片列表,当this.albumUrls和images同时length为0,则表示下载完成
   }
 
   init(strategy) {
@@ -23,57 +25,73 @@ class ImageProcessor extends ProcessorBase {
     Logger.instance.info('[ImageProcessor][%s] Start to process task: %s', process.pid, taskUrl);
 
     try {
-      let albums = await this.strategy.parseAlbums(taskUrl);
-      Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded: %d', process.pid, albums.length);
+      // 解析相册地址列表
+      this.albumUrls = await this.strategy.parseAlbums(taskUrl);
+      Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded: %d', process.pid, this.albumUrls.length);
 
-      if (albums.length == 0) {
+      if (this.albumUrls.length == 0) {
         return; // nothing to download
       }
-
-      for (let albumUrl of albums) {
-        let albumImages = await this.strategy.parseImages(albumUrl);
-        this.images = [...this.images, ...albumImages];
-      }
-      Logger.instance.info('[ImageProcessor][%s] Images to be downloaded: %d', process.pid, this.images.length);
-
-      if (this.images.length == 0) {
-        return; // nothing to download
-      }
-
-      await this.strategy.ensureOutputDir();
     } catch (err) {
-      return new Promise((resolve, reject) => {
-        reject(err);
-      });
+      return Promise.reject(err);
     }
 
-    return new Promise((resolve) => {
-      let reporter = setInterval(() => {
-        Logger.instance.info('[ImageProcessor][%s] Image task left not assigned: %d, Image task downloading: %d', process.pid, this.images.length, this.processingDownloads);
-      }, 3000); // 5s
+    // 从相册url解析出图片地址列表
+    let albumProcessing = 0;
 
-      let timer = setInterval(() => {
+    let albumTimer = setInterval(() => {
+      if (this.albumUrls.length > 0 && albumProcessing < this.albumConcurrencyLimit) {
+        albumProcessing++;
+        this.strategy.parseImages(this.albumUrls.shift()).then((imageInfos) => {
+          albumProcessing--;
+          let albumName = imageInfos[0]; // string
+          let imageUrlInfos = imageInfos[1]; // [[albumName, imageUrl, imageFileName], ...]
+          Logger.instance.info('[ImageProcessor][%s] Album image count, album: %s, count: %d', process.pid, albumName, imageUrlInfos.length);
+          this.strategy.ensureOutputDir(albumName).then(() => {
+            this.images.push(...imageUrlInfos);
+          }).catch((err) => {
+            Logger.instance.error(err);
+          });
+        }).catch((err) => {
+          albumProcessing--;
+          Logger.instance.error(err);
+        });
+      }
+
+      if (this.albumUrls.length <= 0 && albumProcessing <= 0) {
+        clearInterval(albumTimer);
+      }
+    }, 300); // 0.3s
+
+    // 图片下载
+    return new Promise((resolve) => {
+      let imageProcessing = 0;
+
+      let reporter = setInterval(() => {
+        Logger.instance.info('[ImageProcessor][%s] Album not assigned: %d, parsing: %d; Image not assigned: %d, downloading: %d',
+          process.pid, this.albumUrls.length, albumProcessing, this.images.length, imageProcessing);
+      }, 5000); // 5s
+
+      let imageTimer = setInterval(() => {
         // process download
-        if (this.images.length > 0 && this.processingDownloads < this.concurrencyLimit) {
-          this.processingDownloads++;
-          this.strategy.downloadImage(this.images.shift()).then(
-            () => {
-              this.processingDownloads--;
-            },
-            (err) => {
-              this.processingDownloads--;
-              Logger.instance.error(err);
-            }
-          );
+        if (this.images.length > 0 && imageProcessing < this.imageConcurrencyLimit) {
+          imageProcessing++;
+          this.strategy.downloadImage(this.images.shift()).then(() => {
+            imageProcessing--;
+          }).catch((err) => {
+            imageProcessing--;
+            Logger.instance.error(err);
+          });
         }
 
         // check status
-        if (this.images.length <= 0 && this.processingDownloads <= 0) {
+        if (this.albumUrls.length <= 0 && albumProcessing <= 0
+          && this.images.length <= 0 && imageProcessing <= 0) {
           clearInterval(reporter);
-          clearInterval(timer);
+          clearInterval(imageTimer);
           resolve();
         }
-      }, 100); // 0.1s
+      }, 300); // 0.3s
     });
   }
 

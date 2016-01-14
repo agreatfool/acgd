@@ -19,7 +19,7 @@ class Phantom {
 
       child.on('close', (code) => {
         if (0 === code) {
-          Logger.instance.info('[Phantom][%s] phantomjs succeed with code: %s', process.pid, code);
+          //Logger.instance.info('[Phantom][%s] phantomjs succeed with code: %s', process.pid, code); // too more logs
           resolve(buff);
         } else {
           Logger.instance.error('[Phantom][%s] phantomjs failed with code: %s, out: %s', process.pid, code, buff);

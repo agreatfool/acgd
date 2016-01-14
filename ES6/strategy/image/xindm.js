@@ -43,9 +43,7 @@ class Xindm extends ImageStrategy {
     this.title = null;
     this.fileext = null;
 
-    this.albumNames = [];
-
-    this.concurrencyLimit = 10;
+    this.concurrencyLimit = 5;
     this.processingImageParsing = 0;
   }
 
@@ -90,7 +88,6 @@ class Xindm extends ImageStrategy {
       Logger.instance.error('[Worker][%s] Cannot parse title from %s', process.pid, albumUrl);
       return [];
     }
-    this.albumNames.push(title);
 
     let pageMatch = $('#J_showpage').text().match(/.+;(.+)/); // ["112/document.write(maxpages);113", "113"]
     if (pageMatch == null) {
@@ -105,30 +102,27 @@ class Xindm extends ImageStrategy {
 
     return new Promise((resolve) => {
       let reporter = setInterval(() => {
-        Logger.instance.info('[Worker][%s] Image page left not parsed: %d, parsing: %d', process.pid, imagePages.length, this.processingImageParsing);
-      }, 5000); // 6s
+        Logger.instance.info('[Worker][%s] Album %s, pages not assigned: %d, parsing: %d', process.pid, albumUrl, imagePages.length, this.processingImageParsing);
+      }, 5000); // 5s
 
       let timer = setInterval(() => {
         // process parsing
         if (imagePages.length > 0 && this.processingImageParsing < this.concurrencyLimit) {
           this.processingImageParsing++;
-          this._parseImageUrlFromSingleWebPage(imagePages.shift()).then(
-            (imageUrlInfo) => {
-              this.processingImageParsing--;
-              imageUrls.push([title, ...imageUrlInfo]);
-            },
-            (err) => {
-              this.processingImageParsing--;
-              Logger.instance.error(err);
-            }
-          );
+          this._parseImageUrlFromSingleWebPage(imagePages.shift()).then((imageUrlInfo) => {
+            this.processingImageParsing--;
+            imageUrls.push([title, ...imageUrlInfo]); // imageUrlInfo: [imageUrl, imageFileName]
+          }).catch((err) => {
+            this.processingImageParsing--;
+            Logger.instance.error(err);
+          });
         }
 
         // check status
         if (imagePages.length <= 0 && this.processingImageParsing <= 0) {
           clearInterval(reporter);
           clearInterval(timer);
-          resolve(imageUrls);
+          resolve([title, imageUrls]);
         }
       }, 100); // 0.2s
     });
@@ -180,57 +174,6 @@ class Xindm extends ImageStrategy {
     return new Promise((resolve) => {
       resolve([imageUrl, filename]);
     });
-  }
-
-  _parseFilenameFromUrl(imageUrl) {
-    // do nothing
-  }
-
-  async ensureOutputDir() { // promise
-    let path = libPath.join(conf.downloadBase, this.title);
-    let exists = await libFsp.exists(path);
-    if (!exists) {
-      await libFsp.mkdir(path);
-    }
-
-    for (let albumName of this.albumNames) {
-      let albumPath = libPath.join(path, albumName);
-      let albumExists = await libFsp.exists(albumPath);
-      if (!albumExists) {
-        await libFsp.mkdir(albumPath);
-      }
-    }
-  }
-
-  downloadImage(imageUrlInfo) { // promise
-    return new Promise((resolve, reject) => {
-      let imageUrl = imageUrlInfo[1];
-      let filePath = this._buildFileOutputPath(imageUrlInfo);
-      libFsp.stat(filePath).then((stat) => {
-        // file found
-        downAgent.getSizeWithRetry(imageUrl).then((size) => {
-          if (size == stat.size) {
-            // file completely downloaded
-            resolve();
-          } else {
-            // partly downloaded, restart
-            downAgent.writeBinaryWithRetry(imageUrl, filePath, size).then(() => resolve(), (err) => reject(err));
-          }
-        }, (err) => reject(err));
-      }, (err) => {
-        if (err.code == 'ENOENT') {
-          // file not found
-          downAgent.writeBinaryWithRetry(imageUrl, filePath).then(() => resolve(), (err) => reject(err));
-        } else {
-          // other error
-          reject(err);
-        }
-      });
-    });
-  }
-
-  _buildFileOutputPath(imageUrlInfo) { // sync
-    return libPath.join(conf.downloadBase, this.title, imageUrlInfo[0], imageUrlInfo[2]);
   }
 
 }
