@@ -195,7 +195,7 @@ class Runner {
     let type = this.argv.type;
     let strategy = this.argv.strategy;
 
-    let typePath = libPath.join(__dirname, type, type + '.js');
+    let typePath = libPath.join(__dirname, 'processor', type + '.js');
     if (!libFs.existsSync(typePath)) {
       Logger.instance.error('[acgd] Invalid download type: %s', type);
       return false;
