@@ -29,6 +29,10 @@ class ImageProcessor extends ProcessorBase {
       this.albumUrls = await this.strategy.parseAlbums(taskUrl);
       Logger.instance.info('[ImageProcessor][%s] Albums to be downloaded: %d', process.pid, this.albumUrls.length);
 
+      if (!this.strategy.title) {
+        Logger.instance.warn('[ImageProcessor][%s] Failed to parse the task title: %s', process.pid, taskUrl);
+      }
+
       if (this.albumUrls.length == 0) {
         return; // nothing to download
       }

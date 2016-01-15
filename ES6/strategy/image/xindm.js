@@ -72,6 +72,10 @@ class Xindm extends ImageStrategy {
       }
     });
 
+    if (!this.title) {
+      return []; // log done in process controller, no need to do it here
+    }
+
     return albumUrls.reverse();
   }
 

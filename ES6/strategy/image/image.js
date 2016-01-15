@@ -31,13 +31,6 @@ class ImageStrategy {
   async parseImages(albumUrl) {}
 
   /**
-   * 从图片地址解析图片名
-   * @param {string} imageUrl
-   * @return {string}
-   */
-  _parseFilenameFromUrl(imageUrl) {}
-
-  /**
    * 检查并保证相册的输出路径存在
    * @param {string} albumName
    * @return {Promise}

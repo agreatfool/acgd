@@ -40,6 +40,14 @@ class Zngirls extends ImageStrategy {
       return [];
     }
 
+    // get title
+    let html = await needle.getWithRetry(taskUrl);
+    let $ = libCheerio.load(html);
+    this.title = $('title').text();
+    if (!this.title) {
+      return []; // log done in process controller, no need to do it here
+    }
+
     // get base url
     this.baseUrl = match[1];
 
@@ -95,7 +103,6 @@ class Zngirls extends ImageStrategy {
   async _parseLastPageIdOnCurrentPage(pageId) {
     let html = await needle.getWithRetry(this._buildPageUrlViaId(pageId));
     let $ = libCheerio.load(html);
-    this.title = $('title').text();
 
     let lastPageId = 0;
 

@@ -15,7 +15,7 @@ class InstanceLoader {
     }
 
     return downloadStrategy == '' ?
-      require(libPath.join(__dirname, '..', type, type + '.js')).default :
+      require(libPath.join(__dirname, '..', 'processor', type + '.js')).default :
       require(libPath.join(__dirname, '..', 'strategy', type, strategy + '.js')).default;
   }
 
