@@ -63,7 +63,7 @@ class ImageStrategy {
    * @param {Array} imageUrlInfo [albumName, imageUrl, imageFileName]
    * @returns {Promise}
    */
-  downloadImage(imageUrlInfo) { // promise
+  downloadImage(imageUrlInfo) {
     return new Promise((resolve, reject) => {
       let imageUrl = imageUrlInfo[1];
       let filePath = this._buildFileOutputPath(imageUrlInfo);
