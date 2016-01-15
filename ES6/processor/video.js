@@ -9,7 +9,7 @@ class VideoProcessor extends ProcessorBase {
 
     this.strategy = null;
 
-    this.videoConcurrencyLimit = 5;  // 同时进行解析的video数量
+    this.videoConcurrencyLimit = 1;  // 同时进行解析的video数量,NOTE:某些站点在请求过速的时候会报错,请尽量测试后尝试修改并发数
     this.shardConcurrencyLimit = 5;  // 同时进行下载的视频数量
     this.videoUrls = []; // 正在解析的视频url列表,解析完成后会被移除,因此length为0表示下载地址都解析完成
     this.shards = [];    // 正在下载的图片列表,当this.videoUrls和shards同时length为0,则表示下载完成
@@ -51,7 +51,7 @@ class VideoProcessor extends ProcessorBase {
           videoProcessing--;
           let videoName = videoInfos[0]; // string
           let videoUrlInfos = videoInfos[1]; // [[albumName, imageUrl, imageFileName], ...]
-          Logger.instance.info('[VideoProcessor][%s] Video sub shard count, name: %s, count: %d', process.pid, videoName, videoUrlInfos.length);
+          Logger.instance.info('[VideoProcessor][%s] Video sub shard count parsed, name: %s, count: %d', process.pid, videoName, videoUrlInfos.length);
           this.strategy.ensureOutputDir(videoName).then(() => {
             this.shards.push(...videoUrlInfos);
           }).catch((err) => {

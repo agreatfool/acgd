@@ -45,6 +45,8 @@ page.open(url, function(status) {
       waitforload = true;
     });
     console.log(page.content);
-    phantom.exit(0);
+    setTimeout(function(){
+      phantom.exit(0);
+    }, 0);
   }
 });

@@ -62,11 +62,11 @@ class DownloadAgent {
           let received = 0;
           let reporter = setInterval(() => {
             Logger.instance.info('[Worker][%s] File %s progress: %s / %s, %d%', process.pid, url, libFilesize(received), libFilesize(size), parseInt(received / size * 100));
-          }, 200000); // 20s
-
-          dres.on('data', (data) => {
+          }, 20000); // 20s
+          req.on('data', (data) => {
             received += data.length;
           });
+
           dres.on('error', (err) => {
             clearInterval(reporter);
             Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
