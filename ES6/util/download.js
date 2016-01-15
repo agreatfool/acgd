@@ -45,7 +45,7 @@ class DownloadAgent {
     return PromiseRetry.retry(this.getSize, this, [url], 3);
   }
 
-  writeBinary(url, filePath) {
+  writeBinary(url, filePath, progress = false) {
     return new Promise((resolve, reject) => {
       let req = this.request(url);
 
@@ -59,21 +59,28 @@ class DownloadAgent {
         if (resp && resp.statusCode == 200) {
           let dres = req.pipe(libFs.createWriteStream(filePath));
 
-          let received = 0;
-          let reporter = setInterval(() => {
-            Logger.instance.info('[Worker][%s] File %s progress: %s / %s, %d%', process.pid, url, libFilesize(received), libFilesize(size), parseInt(received / size * 100));
-          }, 20000); // 20s
-          req.on('data', (data) => {
-            received += data.length;
-          });
+          let reporter = null;
+          if (progress) {
+            let received = 0;
+            reporter = setInterval(() => {
+              Logger.instance.info('[Worker][%s] File %s progress: %s / %s, %d%', process.pid, url, libFilesize(received), libFilesize(size), parseInt(received / size * 100));
+            }, 20000); // 20s
+            req.on('data', (data) => {
+              received += data.length;
+            });
+          }
 
           dres.on('error', (err) => {
-            clearInterval(reporter);
+            if (reporter != null) {
+              clearInterval(reporter);
+            }
             Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
             reject(err);
           });
           dres.on('close', () => {
-            clearInterval(reporter);
+            if (reporter != null) {
+              clearInterval(reporter);
+            }
             Logger.instance.info('[Worker][%s] File %s downloaded, type: %s, size: %s', process.pid, url, type ,libFilesize(size));
             resolve();
           });
@@ -85,8 +92,8 @@ class DownloadAgent {
     });
   }
 
-  writeBinaryWithRetry(url, filePath) {
-    return PromiseRetry.retry(this.writeBinary, this, [url, filePath], 10);
+  writeBinaryWithRetry(url, filePath, progress = false) {
+    return PromiseRetry.retry(this.writeBinary, this, [url, filePath, progress], 10);
   }
 
 }

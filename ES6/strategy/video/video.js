@@ -68,13 +68,13 @@ class VideoStrategy {
             resolve();
           } else {
             // partly downloaded, restart
-            downAgent.writeBinaryWithRetry(videoUrl, filePath, size).then(() => resolve()).catch((err) => reject(err));
+            downAgent.writeBinaryWithRetry(videoUrl, filePath, true).then(() => resolve()).catch((err) => reject(err));
           }
         }).catch((err) => reject(err));
       }).catch((err) => {
         if (err.code == 'ENOENT') {
           // file not found, shall be 404
-          downAgent.writeBinaryWithRetry(videoUrl, filePath).then(() => resolve()).catch((err) => reject(err));
+          downAgent.writeBinaryWithRetry(videoUrl, filePath, true).then(() => resolve()).catch((err) => reject(err));
         } else {
           // other error
           reject(err);
