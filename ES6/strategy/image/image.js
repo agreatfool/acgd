@@ -68,7 +68,7 @@ class ImageStrategy {
             resolve();
           } else {
             // partly downloaded, restart
-            downAgent.writeBinaryWithRetry(imageUrl, filePath, size).then(() => resolve()).catch((err) => reject(err));
+            downAgent.writeBinaryWithRetry(imageUrl, filePath).then(() => resolve()).catch((err) => reject(err));
           }
         }).catch((err) => reject(err));
       }).catch((err) => {
