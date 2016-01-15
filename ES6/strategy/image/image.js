@@ -89,7 +89,7 @@ class ImageStrategy {
    * @returns {string}
    */
    _buildFileOutputPath(imageUrlInfo) { // sync
-    return libPath.join(conf.downloadBase, this.title, imageUrlInfo[0], imageUrlInfo[2]);
+    return libPath.join(conf.downloadBase, this.title.replace('/', '_'), imageUrlInfo[0].replace('/', '_'), imageUrlInfo[2].replace('/', '_'));
   }
 
 }

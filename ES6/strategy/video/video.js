@@ -89,7 +89,7 @@ class VideoStrategy {
    * @returns {string}
    */
   _buildFileOutputPath(videoUrlInfo) { // sync
-    return libPath.join(conf.downloadBase, this.title, videoUrlInfo[0], videoUrlInfo[2]);
+    return libPath.join(conf.downloadBase, this.title.replace('/', '_'), videoUrlInfo[0].replace('/', '_'), videoUrlInfo[2].replace('/', '_'));
   }
 
 }
