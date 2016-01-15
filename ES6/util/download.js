@@ -59,11 +59,21 @@ class DownloadAgent {
         if (resp && resp.statusCode == 200) {
           let dres = req.pipe(libFs.createWriteStream(filePath));
 
+          let received = 0;
+          let reporter = setInterval(() => {
+            Logger.instance.info('[Worker][%s] File %s progress: %s / %s, %d%', process.pid, url, libFilesize(received), libFilesize(size), parseInt(received / size * 100));
+          }, 200000); // 20s
+
+          dres.on('data', (data) => {
+            received += data.length;
+          });
           dres.on('error', (err) => {
+            clearInterval(reporter);
             Logger.instance.error('[Worker][%s] File %s error in downloading: ', process.pid, url, err);
             reject(err);
           });
           dres.on('close', () => {
+            clearInterval(reporter);
             Logger.instance.info('[Worker][%s] File %s downloaded, type: %s, size: %s', process.pid, url, type ,libFilesize(size));
             resolve();
           });

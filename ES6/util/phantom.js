@@ -6,9 +6,11 @@ import PromiseRetry from './retry.js';
 
 class Phantom {
 
-  getRenderedPage(url) {
+  getRenderedPage(url, exec = null) {
     return new Promise((resolve, reject) => {
-      let child = libCp.spawn('phantomjs', [libPath.join(__dirname, 'phantom_exec.js'), url]);
+      let script = exec != null ? exec : libPath.join(__dirname, 'phantom_exec.js');
+
+      let child = libCp.spawn('phantomjs', [script, url]);
 
       let buff = '';
       let error = '';
@@ -29,8 +31,8 @@ class Phantom {
     });
   }
 
-  getRenderedPageWithRetry(url) { // return promise
-    return PromiseRetry.retry(this.getRenderedPage, this, [url], 5);
+  getRenderedPageWithRetry(url, exec = null) { // return promise
+    return PromiseRetry.retry(this.getRenderedPage, this, [url, exec], 5);
   }
 
 }
