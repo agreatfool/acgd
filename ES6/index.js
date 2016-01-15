@@ -119,7 +119,9 @@ class Runner {
       let lines = fileContent.toString().match(/^.*((\r\n|\n|\r)|$)/gm);
       lines.forEach((line) => {
         line = line.replace(/(\r\n|\n|\r|$)/gm, "");
-        if (!libValidUrl.isUri(line)) {
+        if (line == '') {
+          // empty line, ignore it
+        } else if (!libValidUrl.isUri(line)) {
           Logger.instance.error('[acgd] Line data in source file is invalid: %s', line);
           return;
         }
