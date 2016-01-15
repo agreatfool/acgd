@@ -49,8 +49,7 @@ class Blibili extends VideoStrategy {
       videoUrls.push(libUrl.resolve(this.baseUrl, $(element).attr('href')));
     });
 
-    return [videoUrls.shift()];
-    //return videoUrls;
+    return videoUrls;
   }
 
   async parseVideo(videoUrl) { // return promise
@@ -93,7 +92,7 @@ class Blibili extends VideoStrategy {
       shardUrls.push([title, shardUrl, shardName]);
     });
 
-    return shardUrls;
+    return [title, shardUrls];
   }
 
 }
